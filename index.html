@@ -2,6 +2,7 @@
   <head>
     <style>
       html, body {
+        color: white;
         background: black;
         padding: 0;
         margin: 0;
@@ -11,10 +12,23 @@
         height: 100%;
         width: 100%;
       }
+
+      #container {
+        height: 100vh;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 1fr) auto;
+      }
     </style>
   </head>
   <body>
-    <video id="player" controls muted autoplay></video>
+    <div id="container">
+      <video id="player" controls muted autoplay></video>
+
+      <footer>
+        <p>hi</p>
+      </footer>
+    </div> <!-- #container -->
 
     <script type="text/javascript">
       const video = document.querySelector("#player");
