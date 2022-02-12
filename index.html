@@ -24,25 +24,107 @@
   </head>
   <body>
     <div id="container">
-      <video id="player" controls muted autoplay></video>
+      <video id="player" muted autoplay playsinline></video>
 
       <footer>
-        <p>hi</p>
+        <select id="videoSource"></select>
+
+        <label>Mirror video
+          <input id="mirror" type="checkbox"></input>
+        </label>
+
+        <select id="videoQualitySelect">
+          <option value="" selected disabled hidden>Change quality</option>
+          <option value="fullHd">Full HD</option>
+          <option value="hd">HD</option>
+          <option value="sd">SD</option>
+        </select>
       </footer>
     </div> <!-- #container -->
 
-    <script type="text/javascript">
-      const video = document.querySelector("#player");
+    <script async type="text/javascript">
+      'use strict';
 
-      window.navigator.mediaDevices.getUserMedia({
-        video: { width: 1920, height: 1080 }
-      })
-        .then(stream => {
-          video.srcObject = stream;
-          video.onloadedmetadata = (e) => {
-            video.play()
+      const resolutions = {
+        fullHd: {width: 1920, height: 1080},
+        hd: {width: 1280, height: 720},
+        sd: {width: 640, height: 480}
+      }
+
+      var videoElement = document.querySelector('video');
+      var videoSelect = document.querySelector('select#videoSource');
+      var mirrorToggle = document.querySelector('input#mirror');
+      var videoQualitySelect = document.querySelector('select#videoQualitySelect');
+
+      videoSelect.onchange = getStream;
+      mirrorToggle.onchange = mirrorVideo;
+      videoQualitySelect.onchange = updateStream;
+
+      getStream().then(getDevices).then(gotDevices);
+
+      function getDevices() {
+        // AFAICT in Safari this only gets default devices until gUM is called :/
+        return navigator.mediaDevices.enumerateDevices();
+      }
+
+      function gotDevices(deviceInfos) {
+        window.deviceInfos = deviceInfos; // make available to console
+        console.log('Available input and output devices:', deviceInfos);
+        for (const deviceInfo of deviceInfos) {
+          const option = document.createElement('option');
+          option.value = deviceInfo.deviceId;
+          if (deviceInfo.kind === 'videoinput') {
+            option.text = deviceInfo.label || `Camera ${videoSelect.length + 1}`;
+            videoSelect.appendChild(option);
           }
-        })
+        }
+      }
+
+      function getStream() {
+        if (window.stream) {
+          window.stream.getTracks().forEach(track => {
+            track.stop();
+          });
+        }
+        const videoSource = videoSelect.value;
+        const constraints = {
+          video: {deviceId: videoSource ? {exact: videoSource} : undefined}
+        };
+        return navigator.mediaDevices.getUserMedia(constraints).
+          then(gotStream).catch(handleError);
+      }
+
+      function updateStream() {
+        if (window.stream) {
+          window.stream.getTracks().forEach(track => {
+            var current = track.getConstraints()
+            var target = resolutions[videoQualitySelect.value]
+
+            track.applyConstraints({...current, ...target})
+          });
+        }
+      }
+
+      function gotStream(stream) {
+        window.stream = stream; // make stream available to console
+        videoSelect.selectedIndex = [...videoSelect.options].
+          findIndex(option => option.text === stream.getVideoTracks()[0].label);
+        videoElement.srcObject = stream;
+      }
+
+      function handleError(error) {
+        console.error('Error: ', error);
+      }
+
+      function mirrorVideo () {
+        if (mirrorToggle.checked) {
+          videoElement.style.cssText = "-moz-transform: scale(-1, 1); \
+            -webkit-transform: scale(-1, 1); -o-transform: scale(-1, 1); \
+            transform: scale(-1, 1); filter: FlipH;";
+        } else {
+          videoElement.style.cssText = ""
+        }
+      }
     </script>
   </body>
 </html>
