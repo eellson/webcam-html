@@ -1,6 +1,6 @@
 # Fullscreen video from webcam
 
-A simple HTML video player, which will strem from the device's camera.
+A simple HTML video player, which will stream from the device's camera.
 
 ## Problem statement
 
