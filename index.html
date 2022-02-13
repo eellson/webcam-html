@@ -41,9 +41,8 @@
 
         <select id="videoQualitySelect">
           <option value="" selected disabled hidden>Change quality</option>
-          <option value="fullHd">Full HD</option>
-          <option value="hd">HD</option>
-          <option value="sd">SD</option>
+          <option value="sd">Normal</option>
+          <option value="fullHd">Best</option>
         </select>
       </footer>
     </div> <!-- #container -->
@@ -53,7 +52,6 @@
 
       const resolutions = {
         fullHd: {width: 1920, height: 1080},
-        hd: {width: 1280, height: 720},
         sd: {width: 640, height: 480}
       }
 
@@ -94,7 +92,11 @@
         }
         const videoSource = videoSelect.value;
         const constraints = {
-          video: {deviceId: videoSource ? {exact: videoSource} : undefined}
+          video: {
+            deviceId: videoSource ? {exact: videoSource} : undefined,
+            width: 640,
+            height: 480
+          }
         };
         return navigator.mediaDevices.getUserMedia(constraints).
           then(gotStream).catch(handleError);
